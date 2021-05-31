@@ -1,14 +1,11 @@
 package com.jpa_lombok_codecook_again.demo.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.springframework.stereotype.Component;
+import lombok.*;
 
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -29,6 +26,16 @@ public class Student {
 
     @Transient
     private long age;
+
+    @OneToOne(cascade = CascadeType.PERSIST)
+    private Address address;
+
+    @ElementCollection
+    @Singular
+    private List<String> phoneNumbers;
+
+    @ManyToOne
+    private School school;
 
     public void calculateAge() {
         if (birthDate != null) {

@@ -1,5 +1,8 @@
 package com.jpa_lombok_codecook_again.demo.repository;
 
+import com.jpa_lombok_codecook_again.demo.entity.Address;
+import com.jpa_lombok_codecook_again.demo.entity.Location;
+import com.jpa_lombok_codecook_again.demo.entity.School;
 import com.jpa_lombok_codecook_again.demo.entity.Student;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -10,13 +13,14 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import javax.xml.bind.DatatypeConverterInterface;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.junit.Assert.*;
 
-import static org.junit.Assert.*;
 
 @RunWith(SpringRunner.class)
 @DataJpaTest
@@ -29,6 +33,12 @@ public class AllRepositoryTest {
     @Autowired
     private TestEntityManager entityManager;
 
+    @Autowired
+    private AddressRepository addressRepository;
+
+    @Autowired
+    private SchoolRepository schoolRepository;
+
     @Test
     public void saveOneSimple() {
         Student john = Student.builder()
@@ -38,7 +48,7 @@ public class AllRepositoryTest {
         studentRepository.save(john);
 
         List<Student> studentList = studentRepository.findAll();
-        assertTrue(studentList.size() == 1);
+        assertEquals(1, studentList.size());
     }
 
     @Test(expected = DataIntegrityViolationException.class)
@@ -70,7 +80,7 @@ public class AllRepositoryTest {
     @Test
     public void transientIsNotSaved() {
         Student student = Student.builder()
-                .birthDate(LocalDate.of(1987, 02, 12))
+                .birthDate(LocalDate.of(1987,2, 12))
                 .email("john@lcodecoo.com")
                 .name("Peter")
                 .build();
@@ -82,5 +92,49 @@ public class AllRepositoryTest {
 
         List<Student> students = studentRepository.findAll();
         assertTrue(students.stream().allMatch(student1 -> student1.getAge() == 0L));
+    }
+
+    @Test
+    public void addressIsPersistedWithStudent() {
+        Address address = Address.builder()
+                .country("Hungary")
+                .city("Budapest")
+                .address("Nagymező street 44")
+                .zipCode(1065)
+                .build();
+
+        Student student = Student.builder()
+                .email("temp@codecool.com")
+                .address(address)
+                .build();
+
+        studentRepository.save(student);
+
+        List<Address> addresses = addressRepository.findAll();
+
+        assertTrue(addresses.size() == 1 &&
+                addresses.stream().allMatch(address1 -> address1.getId() > 0L)
+        );
+    }
+
+    @Test
+    public void studentsArePersistedAndDeletedWithNewSchool() {
+        Set<Student> students = IntStream.range(1, 10)
+                .boxed()
+                .map(integer -> Student.builder().email("student" + integer + "@codecool.com").build())
+                .collect(Collectors.toSet());
+        School school = School.builder()
+                .students(students)
+                .location(Location.BUDAPEST)
+                .build();
+
+        schoolRepository.save(school);
+
+        assertTrue(studentRepository.findAll().size() == 9 &&
+                studentRepository.findAll().stream().anyMatch(student -> student.getEmail().equals("student9@codecool.com")));
+
+        schoolRepository.deleteAll();
+
+        assertEquals(0, studentRepository.findAll().size());
     }
 }
