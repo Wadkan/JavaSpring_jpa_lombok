@@ -4,6 +4,8 @@ import com.jpa_lombok_codecook_again.demo.entity.Address;
 import com.jpa_lombok_codecook_again.demo.entity.Location;
 import com.jpa_lombok_codecook_again.demo.entity.School;
 import com.jpa_lombok_codecook_again.demo.entity.Student;
+import net.bytebuddy.asm.Advice;
+import org.assertj.core.util.Lists;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,7 +82,7 @@ public class AllRepositoryTest {
     @Test
     public void transientIsNotSaved() {
         Student student = Student.builder()
-                .birthDate(LocalDate.of(1987,2, 12))
+                .birthDate(LocalDate.of(1987, 2, 12))
                 .email("john@lcodecoo.com")
                 .name("Peter")
                 .build();
@@ -136,5 +138,45 @@ public class AllRepositoryTest {
         schoolRepository.deleteAll();
 
         assertEquals(0, studentRepository.findAll().size());
+    }
+
+    @Test
+    public void findByNameStartingWithOrBirthDateBetween() {
+        Student john = Student.builder()
+                .email("john@codecool.com")
+                .name("John")
+                .build();
+
+        Student jane = Student.builder()
+                .email("jane@codecool.com")
+                .name("Jane")
+                .build();
+
+        Student martha = Student.builder()
+                .email("matha@codecool.com")
+                .name("Matha")
+                .build();
+
+        Student peter = Student.builder()
+                .email("peter@codecool.com")
+                .birthDate(LocalDate.of(2010, 10, 3))
+                .build();
+
+        Student steve = Student.builder()
+                .email("steve@codecool.com")
+                .birthDate(LocalDate.of(2011, 12, 5))
+                .build();
+
+        studentRepository.saveAll(Lists.newArrayList(john, jane, martha, peter, steve));
+
+        List<Student> filteredStudents = studentRepository.findByNameStartingWithOrBirthDateBetween("J",
+                LocalDate.of(2009, 1, 1),
+                LocalDate.of(2011, 1, 1));
+
+        assertTrue(
+                filteredStudents.contains(john)
+                        && filteredStudents.contains(jane)
+                        && filteredStudents.contains(peter)
+        );
     }
 }
