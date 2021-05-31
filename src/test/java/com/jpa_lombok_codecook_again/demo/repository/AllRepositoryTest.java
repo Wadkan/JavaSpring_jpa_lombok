@@ -179,4 +179,32 @@ public class AllRepositoryTest {
                         && filteredStudents.contains(peter)
         );
     }
+
+    @Test
+    public void findAllCountry() {
+        Student first = Student.builder()
+                .email("first@codecool.com")
+                .address(Address.builder().country("Hungary").build())
+                .build();
+        Student second = Student.builder()
+                .email("second@codecool.com")
+                .address(Address.builder().country("Poland").build())
+                .build();
+        Student third = Student.builder()
+                .email("third@codecool.com")
+                .address(Address.builder().country("Poland").build())
+                .build();
+        Student forth = Student.builder()
+                .email("forth@codecool.com")
+                .address(Address.builder().country("Hungary").build())
+                .build();
+
+        studentRepository.saveAll(Lists.newArrayList(first, second, third, forth));
+
+        List<String> allCountry = studentRepository.findAllCountry();
+
+        assertEquals(allCountry.size(), 2);
+        assertTrue(allCountry.contains("Poland"));
+        assertTrue(allCountry.contains("Hungary"));
+    }
 }
