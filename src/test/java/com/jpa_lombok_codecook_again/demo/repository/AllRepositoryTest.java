@@ -207,4 +207,35 @@ public class AllRepositoryTest {
         assertTrue(allCountry.contains("Poland"));
         assertTrue(allCountry.contains("Hungary"));
     }
+
+    @Test
+    public void updateAllToUSAByStudentName() {
+        Address address1 = Address.builder()
+                .country("Hungary")
+                .build();
+        Address address2 = Address.builder()
+                .country("Poland")
+                .build();
+        Address address3 = Address.builder()
+                .country("Germany")
+                .build();
+
+        Student student = Student.builder()
+                .name("temp")
+                .email("temp@codecool.com")
+                .address(address1)
+                .build();
+
+        studentRepository.save(student);
+        addressRepository.save(address2);
+        addressRepository.save(address3);
+
+        assertEquals(3, addressRepository.findAll().size());
+        assertTrue(addressRepository.findAll().stream().noneMatch(address -> address.getCountry().equals("USA")));
+
+        int updatedRows = addressRepository.updateAllToUSAByStudentName("temp");
+        assertEquals(updatedRows, 1);
+        assertEquals(addressRepository.findAll().size(), 3);
+        assertTrue(addressRepository.findAll().stream().anyMatch(address -> address.getCountry().equals("USA")));
+    }
 }
